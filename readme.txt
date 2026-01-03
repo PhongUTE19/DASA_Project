@@ -1,0 +1,1 @@
+Nhấn đúp index.html trong File Explorer để mở trên trình duyệt

@@ -165,4 +165,9 @@ class Visualizer {
         limitLabel.textContent = `Limit: ${appState.limit}`;
         document.documentElement.style.setProperty("--limit", appState.limit);
     }
+
+    init() {
+        visualizer.updateLimit();
+        visualizer.showStack();
+    }
 }

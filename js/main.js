@@ -32,8 +32,4 @@ shortcutManager.init({
     "Ctrl+Shift+Z": { run: historyManager.redo, label: "Redo" }
 });
 
-// =========================
-// Init
-// =========================
-visualizer.updateLimit();
-visualizer.showStack();
+visualizer.init();
