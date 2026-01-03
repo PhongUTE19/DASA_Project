@@ -1,0 +1,139 @@
+:root {
+    --box-height: 40px;
+    --box-width: 50px;
+    --box-gap: 20px;
+    --limit: 10;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.message {
+    height: 24px;
+    margin-bottom: 10px;
+    /* border: #333 solid 1px; */
+}
+
+.message.error {
+    color: red;
+    font-weight: bold;
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+
+.controls input {
+    width: 200px;
+    padding: 10px;
+}
+
+
+.controls button {
+    margin-left: 10px;
+    width: 120px;
+    padding: 6px 10px;
+}
+
+.same-line {
+    display: flex;
+}
+
+
+.visual-area {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 60px;
+    margin-top: 20px;
+}
+
+
+.stack {
+    width: 200px;
+    height: calc(var(--limit) * var(--box-height) + (var(--limit) - 1) * var(--box-gap));
+
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+
+    border-left: 2px solid #333;
+    border-right: 2px solid #333;
+    border-bottom: 2px solid #333;
+    border-top: none;
+
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.queue {
+    width: calc(var(--limit) * var(--box-width) + (var(--limit) - 1) * var(--box-gap));
+    height: 200px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    border-top: 2px solid #333;
+    border-bottom: 2px solid #333;
+    border-left: none;
+    border-right: none;
+
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+
+.box {
+    width: var(--box-width);
+    height: var(--box-height);
+    flex-shrink: 0;
+
+    border: 2px solid #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+    background-color: #f0f0f0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.box.enter-stack {
+    transform: translateY(-40px);
+    opacity: 0;
+}
+
+.box.enter-queue {
+    transform: translateX(40px);
+    opacity: 0;
+}
+
+.box.active {
+    background-color: #ffd966;
+    border-color: #cc9900;
+}
+
+.box.removing {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.hidden {
+    display: none;
+}
+
+.key-hints {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 12px;
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+  padding: 8px;
+  opacity: 0.7;
+}
