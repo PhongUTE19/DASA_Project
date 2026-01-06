@@ -130,7 +130,7 @@ function showCompletionMessage() {
     if (queue.isEmpty() && !isRunning && stats.given > 0) {
         completionMessage.innerHTML = `
             <div class="completion-message">
-                <h2>🎉 HOÀN THÀNH 🎉</h2>
+                <h2> HOÀN THÀNH </h2>
                 <p>Đã phát ${stats.given} lì xì!</p>
             </div>
         `;
