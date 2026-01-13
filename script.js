@@ -1,230 +1,197 @@
-// Character Data - SỬA ĐƯỜNG DẪN
-const characters = [
-    { 
-        id: 1, 
-        type: 'boy', 
-        name: 'Bé Minh', 
-        idle: './assets/images/boy-idle.png',    
-        lixi: './assets/images/boy-lixi.png'     
-    },
-    { 
-        id: 2, 
-        type: 'girl', 
-        name: 'Bé Lan', 
-        idle: './assets/images/girl-idle.png',   
-        lixi: './assets/images/girl-lixi.png'    
-    },
-    { 
-        id: 3, 
-        type: 'boy', 
-        name: 'Bé Tuấn', 
-        idle: './assets/images/boy-idle.png', 
-        lixi: './assets/images/boy-lixi.png' 
-    },
-    { 
-        id: 4, 
-        type: 'girl', 
-        name: 'Bé Hoa', 
-        idle: './assets/images/girl-idle.png', 
-        lixi: './assets/images/girl-lixi.png' 
-    },
-    { 
-        id: 5, 
-        type: 'boy', 
-        name: 'Bé Khoa', 
-        idle: './assets/images/boy-idle.png', 
-        lixi: './assets/images/boy-lixi.png' 
-    },
-    { 
-        id: 6, 
-        type: 'girl', 
-        name: 'Bé Mai', 
-        idle: './assets/images/girl-idle.png', 
-        lixi: './assets/images/girl-lixi.png' 
-    }
+// Configuration & Constants
+const CONFIG = {
+    ASSETS_PATH: './assets/images',
+    ANIMATION_DURATION: 1000,
+    NEXT_DELAY: 500,
+    PLACEHOLDER_BOY: 'https://via.placeholder.com/100x150/FFD700/000?text=👦',
+    PLACEHOLDER_LIXI: 'https://via.placeholder.com/100x150/FFD700/000?text=🧧'
+};
+
+const CHARACTERS_DB = [
+    { id: 1, type: 'boy', name: 'Bé Minh', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
+    { id: 2, type: 'girl', name: 'Bé Lan', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
+    { id: 3, type: 'boy', name: 'Bé Tuấn', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
+    { id: 4, type: 'girl', name: 'Bé Hoa', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
+    { id: 5, type: 'boy', name: 'Bé Khoa', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
+    { id: 6, type: 'girl', name: 'Bé Mai', idle: 'girl-idle.png', lixi: 'girl-lixi.png' }
 ];
 
-// Global State
-const queue = new Queue();
-let received = [];
-let isRunning = false;
-let stats = { total: 3, given: 0 };
+const state = {
+    queue: new Queue(),
+    received: [],
+    isRunning: false,
+    stats: { total: 0, given: 0 }
+};
 
-// DOM Elements
-const numChildrenSlider = document.getElementById('numChildren');
-const numDisplay = document.getElementById('numDisplay');
-const giveOneBtn = document.getElementById('giveOneBtn');
-const giveAllBtn = document.getElementById('giveAllBtn');
-const resetBtn = document.getElementById('resetBtn');
-const queueLine = document.getElementById('queueLine');
-const receivedList = document.getElementById('receivedList');
-const completionMessage = document.getElementById('completionMessage');
-const room = document.getElementById('room');
-const elderImg = document.getElementById('elderImg');
+// DOM Elements Cache
+const elements = {
+    slider: document.getElementById('numChildren'),
+    numDisplay: document.getElementById('numDisplay'),
+    giveOneBtn: document.getElementById('giveOneBtn'),
+    giveAllBtn: document.getElementById('giveAllBtn'),
+    resetBtn: document.getElementById('resetBtn'),
 
-// Set room background và hình ông già - SỬA ĐƯỜNG DẪN
-function setupImages() {
-    room.style.backgroundImage = 'url(./assets/images/room.jpg)';  // Thêm ./
-    elderImg.src = './assets/images/elder.png';  // Thêm ./
-}
+    queueLine: document.getElementById('queueLine'),
+    receivedList: document.getElementById('receivedList'),
+    completionMsg: document.getElementById('completionMessage'),
+    room: document.getElementById('room'),
+    elderImg: document.getElementById('elderImg'),
+    
+    progressBar: document.getElementById('progressBar'),
+    statTotal: document.getElementById('statTotal'),
+    statGiven: document.getElementById('statGiven'),
+    statWaiting: document.getElementById('statWaiting'),
 
-// Initialize
+    charTemplate: document.getElementById('characterTemplate'),
+    completionTemplate: document.getElementById('completionTemplate'),
+    emptyQueueTemplate: document.getElementById('emptyQueueTemplate'),
+};
+
+const getAssetUrl = (filename) => `${CONFIG.ASSETS_PATH}/${filename}`;
+
+const UI = {
+    createCharacterNode(char, isReceived) {
+        // 1. Clone elements from template's content
+        const clone = elements.charTemplate.content.cloneNode(true);
+
+        // 2. Fill in data into the cloned elements
+        const img = clone.querySelector('.char-img');
+        const nameDiv = clone.querySelector('.character-name');
+
+        const imgPath = getAssetUrl(isReceived ? char.lixi : char.idle);
+        const placeholder = isReceived ? CONFIG.PLACEHOLDER_LIXI : CONFIG.PLACEHOLDER_BOY;
+
+        img.src = imgPath;
+        img.alt = char.name;
+        img.onerror = () => { img.src = placeholder; };
+        nameDiv.textContent = char.name;
+
+        return clone;
+    },
+
+    updateStats() {
+        elements.statTotal.textContent = state.stats.total;
+        elements.statGiven.textContent = state.stats.given;
+        elements.statWaiting.textContent = state.queue.size();
+
+        const percentage = state.stats.total > 0 ? (state.stats.given / state.stats.total) * 100 : 0;
+        elements.progressBar.style.width = `${percentage}%`;
+    },
+
+    updateButtons() {
+        const canOperate = !state.queue.isEmpty() && !state.isRunning;
+        elements.giveOneBtn.disabled = !canOperate;
+        elements.giveAllBtn.disabled = !canOperate;
+        elements.resetBtn.disabled = state.isRunning;
+        elements.slider.disabled = state.isRunning || state.stats.given > 0;
+    },
+
+    showCompletionMessage() {
+        elements.completionMsg.innerHTML = '';
+
+        if (state.queue.isEmpty() && !state.isRunning && state.stats.given > 0) {
+            const clone = elements.completionTemplate.content.cloneNode(true);
+            clone.querySelector('.final-count').textContent = state.stats.given;
+            elements.completionMsg.appendChild(clone);
+        }
+    },
+
+    renderQueue() {
+        elements.queueLine.innerHTML = '';
+        const waiting = state.queue.getAll();
+
+        if (waiting.length === 0 && !state.isRunning) {
+            const emptyNode = elements.emptyQueueTemplate.content.cloneNode(true);
+            elements.queueLine.appendChild(emptyNode);
+            return;
+        }
+
+        waiting.forEach(char => {
+            const charNode = this.createCharacterNode(char, false);
+            elements.queueLine.appendChild(charNode);
+        });
+    },
+
+    renderReceived() {
+        elements.receivedList.innerHTML = '';
+        state.received.forEach(char => {
+            const charNode = this.createCharacterNode(char, true);
+            elements.receivedList.appendChild(charNode);
+        });
+    },
+};
+
 function init() {
-    const numChildren = parseInt(numChildrenSlider.value);
-    queue.clear();
-    received = [];
-    isRunning = false;
-    stats = { total: numChildren, given: 0 };
+    const num = parseInt(elements.slider.value);
+    state.queue.clear();
+    state.received = [];
+    state.isRunning = false;
+    state.stats = { total: num, given: 0 };
 
-    const selected = characters.slice(0, numChildren);
-    selected.forEach(char => queue.enqueue({ ...char, hasLixi: false }));
-
-    // Setup images
-    setupImages();
-    
-    renderQueue();
-    renderReceived();
-    updateStats();
-    updateButtons();
-    clearCompletionMessage();
-}
-
-// Render Queue
-function renderQueue() {
-    queueLine.innerHTML = '';
-    const waiting = queue.getAll();
-
-    if (waiting.length === 0 && !isRunning) {
-        queueLine.innerHTML = '<div class="empty-queue">Hàng đợi trống</div>';
-        return;
-    }
-
-    waiting.forEach((char, index) => {
-        const div = document.createElement('div');
-        div.className = 'character';
-        div.setAttribute('data-id', char.id);
-        div.innerHTML = `
-            <img src="${char.idle}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/100x150/FFD700/000?text=👦'">
-            <div class="character-name">${char.name}</div>
-        `;
-        queueLine.appendChild(div);
+    CHARACTERS_DB.slice(0, num).forEach(char => {
+        state.queue.enqueue({ ...char, hasLixi: false });
     });
+
+    elements.numDisplay.textContent = num;
+    elements.room.style.backgroundImage = `url(${getAssetUrl('room.jpg')})`;
+    elements.elderImg.src = getAssetUrl('elder.png');
+    elements.completionMsg.innerHTML = '';
+
+    UI.renderQueue();
+    UI.renderReceived();
+    UI.updateStats();
+    UI.updateButtons();
 }
 
-// Render Received
-function renderReceived() {
-    receivedList.innerHTML = '';
-    received.forEach(char => {
-        const div = document.createElement('div');
-        div.className = 'character';
-        div.innerHTML = `
-            <img src="${char.lixi}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/100x150/FFD700/000?text=🧧'">
-            <div class="character-name">${char.name}</div>
-        `;
-        receivedList.appendChild(div);
-    });
-}
-
-// Show Completion Message
-function showCompletionMessage() {
-    if (queue.isEmpty() && !isRunning && stats.given > 0) {
-        completionMessage.innerHTML = `
-            <div class="completion-message">
-                <h2> HOÀN THÀNH </h2>
-                <p>Đã phát ${stats.given} lì xì!</p>
-            </div>
-        `;
-    }
-}
-
-// Clear Completion Message
-function clearCompletionMessage() {
-    completionMessage.innerHTML = '';
-}
-
-// Update Stats
-function updateStats() {
-    document.getElementById('statTotal').textContent = stats.total;
-    document.getElementById('statGiven').textContent = stats.given;
-    document.getElementById('statWaiting').textContent = queue.size();
-    
-    const percentage = stats.total > 0 ? (stats.given / stats.total) * 100 : 0;
-    document.getElementById('progressBar').style.width = percentage + '%';
-}
-
-// Update Buttons
-function updateButtons() {
-    const canOperate = !queue.isEmpty() && !isRunning;
-    giveOneBtn.disabled = !canOperate;
-    giveAllBtn.disabled = !canOperate;
-    resetBtn.disabled = isRunning;
-    numChildrenSlider.disabled = isRunning || stats.given > 0;
-}
-
-// Give Lixi to One Person
 async function giveLixi() {
-    if (queue.isEmpty() || isRunning) return;
+    if (state.queue.isEmpty() || state.isRunning) return;
 
-    isRunning = true;
-    updateButtons();
+    state.isRunning = true;
+    UI.updateButtons();
 
-    const child = queue.dequeue();
-    
-    // 1. Lấy nhân vật đầu tiên từ hàng đợi
-    const firstCharacter = queueLine.querySelector('.character');
-    if (!firstCharacter) return;
-    
-    // 2. Di chuyển đến ông già (hiệu ứng nhận lì xì tự động hiện ở 70%)
-    firstCharacter.classList.add('moving-to-elder');
-    
-    // 3. Chờ animation hoàn thành
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // 4. Xóa nhân vật khỏi màn hình
-    firstCharacter.remove();
-    
-    // 5. Cập nhật trạng thái
-    const childWithLixi = { ...child, hasLixi: true };
-    received.push(childWithLixi);
-    stats.given++;
-    
-    // 6. Render lại
-    renderQueue();
-    renderReceived();
-    updateStats();
-    
-    // 7. Kiểm tra hoàn thành
-    isRunning = false;
-    updateButtons();
-    
-    if (queue.isEmpty()) {
-        showCompletionMessage();
+    const child = state.queue.dequeue();
+    const firstCharEl = elements.queueLine.querySelector('.character');
+    if (!firstCharEl) return;
+
+    // Animate
+    firstCharEl.classList.add('moving-to-elder');
+    await new Promise(r => setTimeout(r, CONFIG.ANIMATION_DURATION));
+    firstCharEl.remove();
+
+    state.received.push({ ...child, hasLixi: true });
+    state.stats.given++;
+    state.isRunning = false;
+
+    // Render again
+    UI.renderQueue();
+    UI.renderReceived();
+    UI.updateStats();
+    UI.updateButtons();
+
+    if (state.queue.isEmpty()) {
+        UI.showCompletionMessage();
     }
 }
 
-// Give All Automatically
 async function giveAll() {
-    while (!queue.isEmpty()) {
+    while (!state.queue.isEmpty()) {
         await giveLixi();
-        if (!queue.isEmpty()) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+        if (!state.queue.isEmpty()) {
+            await new Promise(r => setTimeout(r, CONFIG.NEXT_DELAY));
         }
     }
 }
 
-// Event Listeners
 function setupEventListeners() {
-    numChildrenSlider.addEventListener('input', (e) => {
-        numDisplay.textContent = e.target.value;
+    elements.slider.addEventListener('input', (e) => {
+        elements.numDisplay.textContent = e.target.value;
     });
-
-    numChildrenSlider.addEventListener('change', init);
-    giveOneBtn.addEventListener('click', giveLixi);
-    giveAllBtn.addEventListener('click', giveAll);
-    resetBtn.addEventListener('click', init);
+    elements.slider.addEventListener('change', init);
+    elements.giveOneBtn.addEventListener('click', giveLixi);
+    elements.giveAllBtn.addEventListener('click', giveAll);
+    elements.resetBtn.addEventListener('click', init);
 }
 
-// Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     init();

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧧 Mô Phỏng Phát Lì Xì Tết - Queue Simulation</title>
-    <link rel="stylesheet" href="./style.css">  <!-- Thêm ./ -->
+    <link rel="stylesheet" href="./style.css"> <!-- Thêm ./ -->
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -18,14 +20,14 @@
             <div class="control-panel">
                 <div class="card">
                     <h2> Cài đặt</h2>
-                    
+
                     <div class="slider-container">
-                        <label>Số lượng cô cậu bé: <span id="numDisplay">3</span></label>
+                        <label>Số lượng cô cậu bé: <span id="numDisplay">0</span></label>
                         <input type="range" id="numChildren" min="1" max="6" value="3">
                     </div>
 
                     <button class="btn btn-primary" id="giveOneBtn">
-                         Phát lì xì cho 1 người
+                        Phát lì xì cho 1 người
                     </button>
 
                     <button class="btn btn-secondary" id="giveAllBtn">
@@ -33,7 +35,7 @@
                     </button>
 
                     <button class="btn btn-reset" id="resetBtn">
-                         Làm mới
+                        Làm mới
                     </button>
                 </div>
 
@@ -63,10 +65,10 @@
             <div class="simulation-area">
                 <div class="room" id="room">
                     <div class="banner">CHÚC MỪNG NĂM MỚI</div>
-                    
+
                     <div class="elder">
                         <!-- Sửa đường dẫn hình ông già -->
-                        <img src="./assets/images/elder.png" alt="Ông Bà" id="elderImg">
+                        <img src="" alt="Ông Bà" id="elderImg">
                     </div>
 
                     <div class="queue-container">
@@ -110,7 +112,26 @@
         </div>
     </div>
 
-    <script src="./queue.js"></script>  <!-- Thêm ./ -->
-    <script src="./script.js"></script>  <!-- Thêm ./ -->
+    <template id="characterTemplate">
+        <div class="character">
+            <img src="" alt="" class="char-img">
+            <div class="character-name"></div>
+        </div>
+    </template>
+
+    <template id="completionTemplate">
+        <div class="completion-message">
+            <h2> HOÀN THÀNH </h2>
+            <p>Đã phát <span class="final-count">0</span> lì xì!</p>
+        </div>
+    </template>
+
+    <template id="emptyQueueTemplate">
+        <div class="empty-queue">Hàng đợi trống</div>
+    </template>
+
+    <script src="./queue.js"></script>
+    <script src="./script.js"></script>
 </body>
+
 </html>
