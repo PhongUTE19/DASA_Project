@@ -282,20 +282,6 @@ input[type="range"]::-webkit-slider-thumb {
     flex-wrap: nowrap;
 }
 
-.queue-line.shift-forward {
-    animation: queue-shift 0.4s ease forwards;
-}
-
-@keyframes queue-shift {
-    from {
-        transform: translateX(0);
-    }
-
-    to {
-        transform: translateX(110px);
-    }
-}
-
 .character {
     position: relative;
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -331,7 +317,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .wish-bubble {
     position: absolute;
-    top: -70px;
+    top: -80px;
     left: 50%;
     transform: translateX(-50%);
     background: #fbbf24;
@@ -348,15 +334,14 @@ input[type="range"]::-webkit-slider-thumb {
 
 .character.show-wish .wish-bubble {
     opacity: 1;
-    animation: pulse 1s infinite;
 }
 
 .lixi {
     position: absolute;
-    top: -40px;
-    right: -15px;
-    width: 40px;
-    height: 50px;
+    top: 40px;
+    right: 60px;
+    width: 32px;
+    height: 40px;
     background: linear-gradient(135deg, #dc2626, #b91c1c);
     border-radius: 5px;
     border: 2px solid #fbbf24;
@@ -372,23 +357,6 @@ input[type="range"]::-webkit-slider-thumb {
 .character.show-lixi .lixi {
     opacity: 1;
     animation: floatLixi 0.5s ease-in-out infinite alternate;
-}
-
-/* Hiệu ứng nhận lì xì bắt đầu từ 70% animation (khoảng 80px) */
-
-
-/* Khi animation di chuyển đạt 70%, hiện hiệu ứng */
-@keyframes showLixiEffect {
-
-    0%,
-    69% {
-        opacity: 0;
-    }
-
-    70%,
-    100% {
-        opacity: 1;
-    }
 }
 
 @keyframes floatLixi {
@@ -440,13 +408,6 @@ input[type="range"]::-webkit-slider-thumb {
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 15px;
-}
-
-.empty-queue {
-    text-align: center;
-    color: #9ca3af;
-    font-size: 1.2em;
-    font-weight: bold;
 }
 
 .completion-message {

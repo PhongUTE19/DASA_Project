@@ -1,16 +1,18 @@
 // Configuration & Constants
 const CONFIG = {
-    ASSETS_PATH: './assets/images',
-    ANIMATION_DURATION: 1500,
+    IMAGES_PATH: './assets/images',
+    SOUNDS_PATH: './assets/sounds',
     WISH_DURATION: 1500,
+    LIXI_DURATION: 1000,
+    BOUNCE_DURATION: 500,
     NEXT_DELAY: 500,
     PLACEHOLDER_IDLE: 'https://via.placeholder.com/100x150/FFD700/000?text=👦',
     PLACEHOLDER_LIXI: 'https://via.placeholder.com/100x150/FFD700/000?text=🧧'
 };
 
 const CHARACTERS_DB = [
-    { id: 1, type: 'boy', name: 'Bé Minh', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
-    { id: 2, type: 'girl', name: 'Bé Lan', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
+    { id: 1, type: 'boy', name: 'Bé Như', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
+    { id: 2, type: 'girl', name: 'Bé Trang', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
     { id: 3, type: 'boy', name: 'Bé Tuấn', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
     { id: 4, type: 'girl', name: 'Bé Hoa', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
     { id: 5, type: 'boy', name: 'Bé Khoa', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
@@ -50,6 +52,10 @@ const WISHES_DB = [
     }
 ];
 
+const sounds = {
+    hapi: new Audio('./assets/sounds/hapi.mp3'),
+};
+
 
 const state = {
     queue: new Queue(),
@@ -60,13 +66,13 @@ const state = {
 
 // DOM Elements Cache
 const elements = {
-    slider: document.getElementById('numChildren'),
+    slider: document.getElementById('numSlider'),
     numDisplay: document.getElementById('numDisplay'),
     giveOneBtn: document.getElementById('giveOneBtn'),
     giveAllBtn: document.getElementById('giveAllBtn'),
     resetBtn: document.getElementById('resetBtn'),
 
-    queueLine: document.getElementById('queueLine'),
+    waitingLine: document.getElementById('waitingLine'),
     receivedList: document.getElementById('receivedList'),
     completionMsg: document.getElementById('completionMessage'),
     room: document.getElementById('room'),
@@ -82,18 +88,17 @@ const elements = {
     emptyQueueTemplate: document.getElementById('emptyQueueTemplate'),
 };
 
-const getAssetUrl = (filename) => `${CONFIG.ASSETS_PATH}/${filename}`;
+const getImageUrl = (filename) => `${CONFIG.IMAGES_PATH}/${filename}`;
+const getSoundUrl = (filename) => `${CONFIG.SOUNDS_PATH}/${filename}`;
 
 const UI = {
     createCharacterNode(char, isReceived) {
-        // 1. Clone elements from template's content
         const clone = elements.charTemplate.content.cloneNode(true);
 
-        // 2. Fill in data into the cloned elements
         const img = clone.querySelector('.char-img');
         const nameDiv = clone.querySelector('.character-name');
 
-        const imgPath = getAssetUrl(isReceived ? char.lixi : char.idle);
+        const imgPath = getImageUrl(isReceived ? char.lixi : char.idle);
         const placeholder = isReceived ? CONFIG.PLACEHOLDER_LIXI : CONFIG.PLACEHOLDER_IDLE;
 
         img.src = imgPath;
@@ -132,18 +137,18 @@ const UI = {
     },
 
     renderQueue() {
-        elements.queueLine.innerHTML = '';
+        elements.waitingLine.innerHTML = '';
         const waiting = [...state.queue.getAll()].reverse();
 
         if (waiting.length === 0 && !state.isRunning) {
             const emptyNode = elements.emptyQueueTemplate.content.cloneNode(true);
-            elements.queueLine.appendChild(emptyNode);
+            elements.waitingLine.appendChild(emptyNode);
             return;
         }
 
         waiting.forEach(char => {
             const charNode = this.createCharacterNode(char, false);
-            elements.queueLine.appendChild(charNode);
+            elements.waitingLine.appendChild(charNode);
         });
     },
 
@@ -154,6 +159,64 @@ const UI = {
             elements.receivedList.appendChild(charNode);
         });
     },
+
+    moveToWish(el) {
+        return el.animate(
+            [
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(70px)' }
+            ],
+            {
+                duration: 500,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'forwards'
+            }
+        ).finished;
+    },
+
+    moveToLixi(el) {
+        return el.animate(
+            [
+                { transform: 'translateX(70px)' },
+                { transform: 'translateX(100px)' }
+            ],
+            {
+                duration: 300,
+                easing: 'ease-in',
+                fill: 'forwards'
+            }
+        ).finished;
+    },
+
+    bounce(el) {
+        return el.animate(
+            [
+                { transform: 'translateY(0)' },
+                { transform: 'translateY(-22px)' },
+                { transform: 'translateY(0)' }
+            ],
+            {
+                duration: 300,
+                easing: 'ease-out',
+                iterations: 2,
+                composite: 'add'
+            }
+        ).finished;
+    },
+
+    moveUp(el) {
+        return el.animate(
+            [
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(110px)' }
+            ],
+            {
+                duration: 400,
+                easing: 'cubic-bezier(0.22,1,0.36,1)',
+                fill: 'forwards'
+            }
+        ).finished;
+    }
 };
 
 function init() {
@@ -168,8 +231,8 @@ function init() {
     });
 
     elements.numDisplay.textContent = num;
-    elements.room.style.backgroundImage = `url(${getAssetUrl('room.jpg')})`;
-    elements.elderImg.src = getAssetUrl('elder.png');
+    elements.room.style.backgroundImage = `url(${getImageUrl('room.jpg')})`;
+    elements.elderImg.src = getImageUrl('elder.png');
     elements.completionMsg.innerHTML = '';
 
     UI.renderQueue();
@@ -188,7 +251,7 @@ async function giveLixi() {
     state.isRunning = true;
     UI.updateButtons();
 
-    const chars = elements.queueLine.querySelectorAll('.character');
+    const chars = elements.waitingLine.querySelectorAll('.character');
     const first = chars[chars.length - 1];
     if (!first) return;
 
@@ -196,68 +259,60 @@ async function giveLixi() {
     const wish = WISHES_DB[Math.floor(Math.random() * WISHES_DB.length)];
     const child = { ...state.queue.dequeue(), wish };
     const wishEl = first.querySelector('.wish-bubble');
+    
+    await UI.moveToWish(first);
+    
     wishEl.textContent = wish.text;
-    // Stop layout shift
-    await first.animate(
-        [
-            { transform: 'translateX(0)' },
-            { transform: 'translateX(60px)' }
-        ],
-        {
-            duration: 400,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            fill: 'forwards'
-        }
-    ).finished;
-
-    /* đứng chúc */
     first.classList.add('show-wish');
-    await wait(2000);
+    await wait(CONFIG.WISH_DURATION);
     first.classList.remove('show-wish');
 
-    /* tiến tiếp */
-    await first.animate(
-        [
-            { transform: 'translateX(60px)' },
-            { transform: 'translateX(110px)' }
-        ],
-        {
-            duration: 300,
-            easing: 'ease-in',
-            fill: 'forwards'
-        }
-    ).finished;
+    await UI.moveToLixi(first);
 
+    wishEl.textContent = 'Con cảm ơn ông bà ạ!';
+    first.classList.add('show-wish');
     first.classList.add('show-lixi');
-    await wait(1000);
+    await wait(CONFIG.LIXI_DURATION);
+    first.classList.remove('show-wish');
     first.classList.remove('show-lixi');
-    await wait(1000);
-    first.remove();
+
+    sounds.hapi.play();
+    await UI.bounce(first);
+    await wait(CONFIG.BOUNCE_DURATION);
+
+    // rời đi
     const ghost = first.cloneNode(true);
     ghost.classList.add('hold-space');
-    elements.queueLine.appendChild(ghost);
+    elements.waitingLine.appendChild(ghost);
+    first.remove();
 
-    elements.queueLine.classList.add('shift-forward');
-    await wait(400);
+    // dồn hàng đợi
+    const rest = Array.from(elements.waitingLine.children)
+        .slice(0, -1);
+
+    await Promise.all(
+        rest.map(el => UI.moveUp(el))
+    );
+
     ghost.remove();
-    elements.queueLine.classList.remove('shift-forward');
 
     state.received.push({ ...child, hasLixi: true });
     state.stats.given++;
     state.isRunning = false;
 
+    UI.renderQueue();
     UI.renderReceived();
     UI.updateStats();
     UI.updateButtons();
 
-    if (state.queue.isEmpty()) UI.showCompletionMessage();
+    if (state.queue.isEmpty())
+        UI.showCompletionMessage();
 }
-
 
 async function giveAll() {
     while (!state.queue.isEmpty()) {
         await giveLixi();
-        await new Promise(r => setTimeout(r, CONFIG.NEXT_DELAY));
+        await wait(CONFIG.NEXT_DELAY);
     }
 }
 
@@ -274,4 +329,8 @@ function setupEventListeners() {
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     init();
+});
+
+Object.values(sounds).forEach(a => {
+    a.preload = 'auto';
 });
