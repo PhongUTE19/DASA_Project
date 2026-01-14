@@ -136,6 +136,14 @@ const UI = {
         }
     },
 
+    renderReceivedList() {
+        elements.receivedList.innerHTML = '';
+        state.received.forEach(char => {
+            const charNode = this.createCharacterNode(char, true);
+            elements.receivedList.appendChild(charNode);
+        });
+    },
+
     async enqueueWithAnimation(num) {
         state.queue.clear();
         elements.waitingLine.innerHTML = '';
@@ -145,24 +153,25 @@ const UI = {
 
         for (const char of chars) {
             state.queue.enqueue({ ...char, hasLixi: false });
-            await UI.animateEnqueue(char);
+            const node = UI.createCharacterNode(char, false);
+            const el = node.querySelector('.character');
+
+            elements.waitingLine.prepend(node);
+
+            // force reflow để browser ghi nhận vị trí ban đầu
+            el.getBoundingClientRect();
+
+            await UI.animateEnqueue(el);
             await wait(50);
         }
         state.isRunning = false;
         UI.updateButtons();
     },
 
-    async animateEnqueue(char) {
-        const node = UI.createCharacterNode(char, false);
-        const el = node.querySelector('.character');
-
-        elements.waitingLine.prepend(node);
-
-        // force reflow để browser ghi nhận vị trí ban đầu
-        el.getBoundingClientRect();
+    animateEnqueue(el) {
         const ITEM_OFFSET = 40;
 
-        await el.animate(
+        return el.animate(
             [
                 { transform: `translateX(-${ITEM_OFFSET}px)`, opacity: 0 },
                 { transform: 'translateX(0)', opacity: 1 }
@@ -175,15 +184,7 @@ const UI = {
         ).finished;
     },
 
-    renderReceivedList() {
-        elements.receivedList.innerHTML = '';
-        state.received.forEach(char => {
-            const charNode = this.createCharacterNode(char, true);
-            elements.receivedList.appendChild(charNode);
-        });
-    },
-
-    moveToWish(el) {
+    animateMoveToWish(el) {
         return el.animate(
             [
                 { transform: 'translateX(0)' },
@@ -197,7 +198,7 @@ const UI = {
         ).finished;
     },
 
-    moveToLixi(el) {
+    animateMoveToLixi(el) {
         return el.animate(
             [
                 { transform: 'translateX(70px)' },
@@ -211,7 +212,7 @@ const UI = {
         ).finished;
     },
 
-    bounce(el) {
+    animateBounce(el) {
         sounds.hapi.play();
         return el.animate(
             [
@@ -228,7 +229,7 @@ const UI = {
         ).finished;
     },
 
-    shiftQueue(el) {
+    animateShiftQueue(el) {
         const ITEM_OFFSET = 110;
 
         return elements.waitingLine.animate(
@@ -286,14 +287,14 @@ async function giveLixi() {
     const child = { ...state.queue.dequeue(), wish };
     const wishEl = first.querySelector('.wish-bubble');
 
-    await UI.moveToWish(first);
+    await UI.animateMoveToWish(first);
 
     wishEl.textContent = wish.text;
     first.classList.add('show-wish');
     await wait(CONFIG.WISH_DURATION);
     first.classList.remove('show-wish');
 
-    await UI.moveToLixi(first);
+    await UI.animateMoveToLixi(first);
 
     wishEl.textContent = 'Con cảm ơn ông bà ạ!';
     first.classList.add('show-wish');
@@ -302,12 +303,12 @@ async function giveLixi() {
     first.classList.remove('show-wish');
     first.classList.remove('show-lixi');
 
-    await UI.bounce(first);
+    await UI.animateBounce(first);
     await wait(CONFIG.BOUNCE_DURATION);
 
     // rời đi
     first.remove();
-    await UI.shiftQueue(elements.waitingLine);
+    await UI.animateShiftQueue(elements.waitingLine);
 
     state.received.push({ ...child, hasLixi: true });
     const charNode = UI.createCharacterNode(child, true);
@@ -322,7 +323,7 @@ async function giveLixi() {
         UI.showCompletionMessage();
 }
 
-async function giveAll() {
+async function giveLixiAll() {
     while (!state.queue.isEmpty()) {
         await giveLixi();
         await wait(CONFIG.NEXT_DELAY);

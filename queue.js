@@ -1,4 +1,3 @@
-// Queue Class Implementation
 class Queue {
     constructor() {
         this.items = [];
@@ -34,5 +33,3 @@ class Queue {
         return [...this.items];
     }
 }
-
-// export default Queue;
