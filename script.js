@@ -14,7 +14,7 @@ const CONFIG = {
 const CHARACTERS_DB = [
     { id: 1, type: 'boy', name: 'Bé Như', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
     { id: 2, type: 'girl', name: 'Bé Trang', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
-    { id: 3, type: 'boy', name: 'Bé Tuấn', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
+    { id: 3, type: 'boy', name: 'Bé Phong', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
     { id: 4, type: 'girl', name: 'Bé Hoa', idle: 'girl-idle.png', lixi: 'girl-lixi.png' },
     { id: 5, type: 'boy', name: 'Bé Khoa', idle: 'boy-idle.png', lixi: 'boy-lixi.png' },
     { id: 6, type: 'girl', name: 'Bé Mai', idle: 'girl-idle.png', lixi: 'girl-lixi.png' }
