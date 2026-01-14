@@ -30,7 +30,7 @@ body {
 .header h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .main-content {
@@ -49,7 +49,7 @@ body {
     background: white;
     padding: 25px;
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border: 3px solid #fca5a5;
 }
 
@@ -91,6 +91,10 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
 }
 
+:root {
+    --btn-hover-transform: translateY(-10px);
+}
+
 .btn {
     padding: 15px 20px;
     border: none;
@@ -99,7 +103,7 @@ input[type="range"]::-webkit-slider-thumb {
     font-size: 1em;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -111,25 +115,25 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: not-allowed;
 }
 
-.btn-primary {
+.btn-give-1 {
     background: #dc2626;
     color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btn-give-1:hover:not(:disabled) {
     background: #b91c1c;
-    transform: translateY(-2px);
+    transform: var(--btn-hover-transform);
     box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
 }
 
-.btn-secondary {
+.btn-give-all {
     background: #fbbf24;
     color: white;
 }
 
-.btn-secondary:hover:not(:disabled) {
+.btn-give-all:hover:not(:disabled) {
     background: #f59e0b;
-    transform: translateY(-2px);
+    transform: var(--btn-hover-transform);
 }
 
 .btn-reset {
@@ -139,7 +143,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .btn-reset:hover:not(:disabled) {
     background: #4b5563;
-    transform: translateY(-2px);
+    transform: var(--btn-hover-transform);
 }
 
 .stats {
@@ -181,7 +185,7 @@ input[type="range"]::-webkit-slider-thumb {
     background: white;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border: 3px solid #fca5a5;
     position: relative;
 }
@@ -202,7 +206,7 @@ input[type="range"]::-webkit-slider-thumb {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     z-index: 1;
 }
 
@@ -218,7 +222,7 @@ input[type="range"]::-webkit-slider-thumb {
     font-weight: bold;
     font-size: 1.2em;
     border: 4px solid #fbbf24;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     z-index: 10;
 }
 
@@ -233,7 +237,7 @@ input[type="range"]::-webkit-slider-thumb {
 .elder img {
     width: 140px;
     height: auto;
-    filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.3));
 }
 
 .queue-container {
@@ -250,6 +254,10 @@ input[type="range"]::-webkit-slider-thumb {
     text-align: right;
     margin-bottom: 20px;
     margin-right: 20px;
+    position: relative;
+    top: -30px;
+    left: -500px;
+
 }
 
 .queue-label span {
@@ -259,28 +267,46 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 25px;
     font-weight: bold;
     border: 3px solid white;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .queue-line {
     display: flex;
+    flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
     min-height: 150px;
     position: relative;
-    flex-direction: row-reverse;
+    max-width: 550px;
+    flex-wrap: nowrap;
+}
+
+.queue-line.shift-forward {
+    animation: queue-shift 0.4s ease forwards;
+}
+
+@keyframes queue-shift {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(110px);
+    }
 }
 
 .character {
     position: relative;
-    transition: all 0.5s ease;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 1;
 }
 
 .character img {
     width: 100px;
     height: auto;
-    filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+    filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.3));
+    object-fit: contain;
 }
 
 .character-name {
@@ -297,54 +323,13 @@ input[type="range"]::-webkit-slider-thumb {
     white-space: nowrap;
 }
 
-/* SỬA ANIMATION - Hiệu ứng nhận lì xì trong lúc di chuyển */
-.moving-to-elder {
-    animation: moveToElder 1s ease-out forwards;
-    position: absolute !important;
-    z-index: 100 !important;
+.character.hold-space {
+    width: 100px;
+    visibility: hidden;
+    pointer-events: none;
 }
 
-@keyframes moveToElder {
-    0% {
-        transform: translateX(0);
-        right: 0;
-    }
-    70% {
-        transform: translateX(80px); /* Dừng ở 80px thay vì 110px */
-        right: 0;
-    }
-    100% {
-        transform: translateX(110px); /* Vẫn đến 110px nhưng chậm hơn */
-        right: 0;
-    }
-}
-
-/* Hiệu ứng nhận lì xì bắt đầu từ 70% animation (khoảng 80px) */
-.moving-to-elder::before {
-    content: '🧧';
-    position: absolute;
-    width: 40px;
-    height: 50px;
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    border-radius: 5px;
-    transform: rotate(-15deg);
-    animation: floatLixi 0.5s ease-in-out infinite alternate;
-    z-index: 85;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fbbf24;
-    font-size: 24px;
-    border: 2px solid #fbbf24;
-    top: -40px;
-    right: -15px;
-    opacity: 0; /* Ban đầu ẩn */
-    animation-delay: 0.7s; /* Hiện sau 0.7 giây */
-    animation-fill-mode: forwards;
-}
-
-.moving-to-elder::after {
-    content: 'Đang nhận lì xì...';
+.wish-bubble {
     position: absolute;
     top: -70px;
     left: 50%;
@@ -353,47 +338,79 @@ input[type="range"]::-webkit-slider-thumb {
     color: white;
     padding: 8px 20px;
     border-radius: 20px;
-    font-weight: bold;
     border: 2px solid white;
-    animation: pulse 1s infinite;
-    white-space: nowrap;
-    z-index: 95;
+    font-weight: bold;
     font-size: 14px;
-    opacity: 0; /* Ban đầu ẩn */
-    animation-delay: 0.7s; /* Hiện sau 0.7 giây */
-    animation-fill-mode: forwards;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
 }
+
+.character.show-wish .wish-bubble {
+    opacity: 1;
+    animation: pulse 1s infinite;
+}
+
+.lixi {
+    position: absolute;
+    top: -40px;
+    right: -15px;
+    width: 40px;
+    height: 50px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border-radius: 5px;
+    border: 2px solid #fbbf24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #fbbf24;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.character.show-lixi .lixi {
+    opacity: 1;
+    animation: floatLixi 0.5s ease-in-out infinite alternate;
+}
+
+/* Hiệu ứng nhận lì xì bắt đầu từ 70% animation (khoảng 80px) */
+
 
 /* Khi animation di chuyển đạt 70%, hiện hiệu ứng */
 @keyframes showLixiEffect {
-    0%, 69% {
+
+    0%,
+    69% {
         opacity: 0;
     }
-    70%, 100% {
+
+    70%,
+    100% {
         opacity: 1;
     }
 }
 
-/* Áp dụng animation hiện hiệu ứng cho pseudo-elements */
-.moving-to-elder::before,
-.moving-to-elder::after {
-    animation: showLixiEffect 1s ease-out forwards, 
-               floatLixi 0.5s ease-in-out infinite alternate 0.7s;
-}
-
-.moving-to-elder::after {
-    animation: showLixiEffect 1s ease-out forwards, 
-               pulse 1s infinite 0.7s;
-}
-
 @keyframes floatLixi {
-    from { transform: rotate(-15deg) translateY(0); }
-    to { transform: rotate(-15deg) translateY(-10px); }
+    from {
+        transform: rotate(-15deg) translateY(0);
+    }
+
+    to {
+        transform: rotate(-15deg) translateY(-10px);
+    }
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .received-section {
@@ -415,7 +432,7 @@ input[type="range"]::-webkit-slider-thumb {
     border: 2px solid white;
     display: inline-block;
     margin-bottom: 15px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .received-list {
@@ -443,7 +460,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 20px;
     text-align: center;
     border: 5px solid #fbbf24;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     z-index: 20;
     animation: pulse 2s infinite;
 }
@@ -459,7 +476,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 15px;
     margin-top: 20px;
     border: 3px solid #93c5fd;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .explanation h3 {
@@ -504,7 +521,7 @@ input[type="range"]::-webkit-slider-thumb {
     .main-content {
         grid-template-columns: 1fr;
     }
-    
+
     .room {
         height: 500px;
     }

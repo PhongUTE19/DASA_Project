@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧧 Mô Phỏng Phát Lì Xì Tết - Queue Simulation</title>
-    <link rel="stylesheet" href="./style.css"> <!-- Thêm ./ -->
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
@@ -26,11 +26,11 @@
                         <input type="range" id="numChildren" min="1" max="6" value="3">
                     </div>
 
-                    <button class="btn btn-primary" id="giveOneBtn">
+                    <button class="btn btn-give-1" id="giveOneBtn">
                         Phát lì xì cho 1 người
                     </button>
 
-                    <button class="btn btn-secondary" id="giveAllBtn">
+                    <button class="btn btn-give-all" id="giveAllBtn">
                         ▶ Tự động phát hết
                     </button>
 
@@ -116,6 +116,8 @@
         <div class="character">
             <img src="" alt="" class="char-img">
             <div class="character-name"></div>
+            <div class="wish-bubble"></div>
+            <div class="lixi"></div>
         </div>
     </template>
 
@@ -124,10 +126,6 @@
             <h2> HOÀN THÀNH </h2>
             <p>Đã phát <span class="final-count">0</span> lì xì!</p>
         </div>
-    </template>
-
-    <template id="emptyQueueTemplate">
-        <div class="empty-queue">Hàng đợi trống</div>
     </template>
 
     <script src="./queue.js"></script>
