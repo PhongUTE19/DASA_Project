@@ -66,8 +66,8 @@ const state = {
 
 // DOM Elements Cache
 const elements = {
-    slider: document.getElementById('numSlider'),
-    numDisplay: document.getElementById('numDisplay'),
+    numSlider: document.getElementById('numSlider'),
+    numLabel: document.getElementById('numLabel'),
     giveOneBtn: document.getElementById('giveOneBtn'),
     giveAllBtn: document.getElementById('giveAllBtn'),
     resetBtn: document.getElementById('resetBtn'),
@@ -83,7 +83,7 @@ const elements = {
     statGiven: document.getElementById('statGiven'),
     statWaiting: document.getElementById('statWaiting'),
 
-    charTemplate: document.getElementById('characterTemplate'),
+    characterTemplate: document.getElementById('characterTemplate'),
     completionTemplate: document.getElementById('completionTemplate'),
     emptyQueueTemplate: document.getElementById('emptyQueueTemplate'),
 };
@@ -93,7 +93,7 @@ const getSoundUrl = (filename) => `${CONFIG.SOUNDS_PATH}/${filename}`;
 
 const UI = {
     createCharacterNode(char, isReceived) {
-        const clone = elements.charTemplate.content.cloneNode(true);
+        const clone = elements.characterTemplate.content.cloneNode(true);
 
         const img = clone.querySelector('.char-img');
         const nameDiv = clone.querySelector('.character-name');
@@ -123,7 +123,7 @@ const UI = {
         elements.giveOneBtn.disabled = !canOperate;
         elements.giveAllBtn.disabled = !canOperate;
         elements.resetBtn.disabled = state.isRunning;
-        elements.slider.disabled = state.isRunning || state.stats.given > 0;
+        elements.numSlider.disabled = state.isRunning || state.stats.given > 0;
     },
 
     showCompletionMessage() {
@@ -189,6 +189,7 @@ const UI = {
     },
 
     bounce(el) {
+        sounds.hapi.play();
         return el.animate(
             [
                 { transform: 'translateY(0)' },
@@ -204,11 +205,14 @@ const UI = {
         ).finished;
     },
 
-    moveUp(el) {
-        return el.animate(
+    shiftQueue(el) {
+        const ITEM_OFFSET = 110;
+        elements.waitingLine.style.transform = `translateX(-${ITEM_OFFSET}px)`;
+
+        return elements.waitingLine.animate(
             [
-                { transform: 'translateX(0)' },
-                { transform: 'translateX(110px)' }
+                { transform: `translateX(-${ITEM_OFFSET}px)` },
+                { transform: 'translateX(0)' }
             ],
             {
                 duration: 400,
@@ -220,7 +224,7 @@ const UI = {
 };
 
 function init() {
-    const num = parseInt(elements.slider.value);
+    const num = parseInt(elements.numSlider.value);
     state.queue.clear();
     state.received = [];
     state.isRunning = false;
@@ -230,7 +234,7 @@ function init() {
         state.queue.enqueue({ ...char, hasLixi: false });
     });
 
-    elements.numDisplay.textContent = num;
+    elements.numLabel.textContent = num;
     elements.room.style.backgroundImage = `url(${getImageUrl('room.jpg')})`;
     elements.elderImg.src = getImageUrl('elder.png');
     elements.completionMsg.innerHTML = '';
@@ -259,9 +263,9 @@ async function giveLixi() {
     const wish = WISHES_DB[Math.floor(Math.random() * WISHES_DB.length)];
     const child = { ...state.queue.dequeue(), wish };
     const wishEl = first.querySelector('.wish-bubble');
-    
+
     await UI.moveToWish(first);
-    
+
     wishEl.textContent = wish.text;
     first.classList.add('show-wish');
     await wait(CONFIG.WISH_DURATION);
@@ -276,32 +280,19 @@ async function giveLixi() {
     first.classList.remove('show-wish');
     first.classList.remove('show-lixi');
 
-    sounds.hapi.play();
     await UI.bounce(first);
     await wait(CONFIG.BOUNCE_DURATION);
 
     // rời đi
-    const ghost = first.cloneNode(true);
-    ghost.classList.add('hold-space');
-    elements.waitingLine.appendChild(ghost);
     first.remove();
-
-    // dồn hàng đợi
-    const rest = Array.from(elements.waitingLine.children)
-        .slice(0, -1);
-
-    await Promise.all(
-        rest.map(el => UI.moveUp(el))
-    );
-
-    ghost.remove();
+    await UI.shiftQueue(elements.waitingLine);
 
     state.received.push({ ...child, hasLixi: true });
+    const charNode = UI.createCharacterNode(child, true);
+    elements.receivedList.appendChild(charNode);
     state.stats.given++;
     state.isRunning = false;
 
-    UI.renderQueue();
-    UI.renderReceived();
     UI.updateStats();
     UI.updateButtons();
 
@@ -317,10 +308,10 @@ async function giveAll() {
 }
 
 function setupEventListeners() {
-    elements.slider.addEventListener('input', (e) => {
-        elements.numDisplay.textContent = e.target.value;
+    elements.numSlider.addEventListener('input', (e) => {
+        elements.numLabel.textContent = e.target.value;
     });
-    elements.slider.addEventListener('change', init);
+    elements.numSlider.addEventListener('change', init);
     elements.giveOneBtn.addEventListener('click', giveLixi);
     elements.giveAllBtn.addEventListener('click', giveAll);
     elements.resetBtn.addEventListener('click', init);
