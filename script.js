@@ -6,6 +6,7 @@ const CONFIG = {
     LIXI_DURATION: 1000,
     BOUNCE_DURATION: 500,
     NEXT_DELAY: 500,
+    EASING_CUBIC_BEZIER: 'cubic-bezier(0.22, 1, 0.36, 1)',
     PLACEHOLDER_IDLE: 'https://via.placeholder.com/100x150/FFD700/000?text=👦',
     PLACEHOLDER_LIXI: 'https://via.placeholder.com/100x150/FFD700/000?text=🧧'
 };
@@ -85,7 +86,6 @@ const elements = {
 
     characterTemplate: document.getElementById('characterTemplate'),
     completionTemplate: document.getElementById('completionTemplate'),
-    emptyQueueTemplate: document.getElementById('emptyQueueTemplate'),
 };
 
 const getImageUrl = (filename) => `${CONFIG.IMAGES_PATH}/${filename}`;
@@ -136,23 +136,46 @@ const UI = {
         }
     },
 
-    renderQueue() {
+    async enqueueWithAnimation(num) {
+        state.queue.clear();
         elements.waitingLine.innerHTML = '';
-        const waiting = [...state.queue.getAll()].reverse();
+        state.isRunning = true;
+        UI.updateButtons();
+        const chars = CHARACTERS_DB.slice(0, num);
 
-        if (waiting.length === 0 && !state.isRunning) {
-            const emptyNode = elements.emptyQueueTemplate.content.cloneNode(true);
-            elements.waitingLine.appendChild(emptyNode);
-            return;
+        for (const char of chars) {
+            state.queue.enqueue({ ...char, hasLixi: false });
+            await UI.animateEnqueue(char);
+            await wait(50);
         }
-
-        waiting.forEach(char => {
-            const charNode = this.createCharacterNode(char, false);
-            elements.waitingLine.appendChild(charNode);
-        });
+        state.isRunning = false;
+        UI.updateButtons();
     },
 
-    renderReceived() {
+    async animateEnqueue(char) {
+        const node = UI.createCharacterNode(char, false);
+        const el = node.querySelector('.character');
+
+        elements.waitingLine.prepend(node);
+
+        // force reflow để browser ghi nhận vị trí ban đầu
+        el.getBoundingClientRect();
+        const ITEM_OFFSET = 40;
+
+        await el.animate(
+            [
+                { transform: `translateX(-${ITEM_OFFSET}px)`, opacity: 0 },
+                { transform: 'translateX(0)', opacity: 1 }
+            ],
+            {
+                duration: 400,
+                easing: CONFIG.EASING_CUBIC_BEZIER,
+                fill: 'forwards'
+            }
+        ).finished;
+    },
+
+    renderReceivedList() {
         elements.receivedList.innerHTML = '';
         state.received.forEach(char => {
             const charNode = this.createCharacterNode(char, true);
@@ -168,7 +191,7 @@ const UI = {
             ],
             {
                 duration: 500,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                easing: CONFIG.EASING_CUBIC_BEZIER,
                 fill: 'forwards'
             }
         ).finished;
@@ -193,7 +216,7 @@ const UI = {
         return el.animate(
             [
                 { transform: 'translateY(0)' },
-                { transform: 'translateY(-22px)' },
+                { transform: 'translateY(-20px)' },
                 { transform: 'translateY(0)' }
             ],
             {
@@ -207,7 +230,6 @@ const UI = {
 
     shiftQueue(el) {
         const ITEM_OFFSET = 110;
-        elements.waitingLine.style.transform = `translateX(-${ITEM_OFFSET}px)`;
 
         return elements.waitingLine.animate(
             [
@@ -215,15 +237,15 @@ const UI = {
                 { transform: 'translateX(0)' }
             ],
             {
-                duration: 400,
-                easing: 'cubic-bezier(0.22,1,0.36,1)',
+                duration: 800,
+                easing: CONFIG.EASING_CUBIC_BEZIER,
                 fill: 'forwards'
             }
         ).finished;
     }
 };
 
-function init() {
+async function init() {
     const num = parseInt(elements.numSlider.value);
     state.queue.clear();
     state.received = [];
@@ -239,10 +261,10 @@ function init() {
     elements.elderImg.src = getImageUrl('elder.png');
     elements.completionMsg.innerHTML = '';
 
-    UI.renderQueue();
-    UI.renderReceived();
+    UI.renderReceivedList();
     UI.updateStats();
     UI.updateButtons();
+    await UI.enqueueWithAnimation(num);
 }
 
 function wait(ms) {
@@ -311,7 +333,10 @@ function setupEventListeners() {
     elements.numSlider.addEventListener('input', (e) => {
         elements.numLabel.textContent = e.target.value;
     });
-    elements.numSlider.addEventListener('change', init);
+    elements.numSlider.addEventListener('change', async () => {
+        await init();
+    });
+
     elements.giveOneBtn.addEventListener('click', giveLixi);
     elements.giveAllBtn.addEventListener('click', giveAll);
     elements.resetBtn.addEventListener('click', init);
