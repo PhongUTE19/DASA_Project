@@ -323,7 +323,7 @@ async function giveLixi() {
         UI.showCompletionMessage();
 }
 
-async function giveLixiAll() {
+async function giveAll() {
     while (!state.queue.isEmpty()) {
         await giveLixi();
         await wait(CONFIG.NEXT_DELAY);
